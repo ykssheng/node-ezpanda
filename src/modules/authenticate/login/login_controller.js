@@ -13,19 +13,12 @@ exports.login = async (req, res, next) => {
 
         if (email && password) {
             const [user, userFields] = await dbConnPool.query(
-                `SELECT user.id, user.password, user.user_access_id, attachment.file_name, attachment.file_path,
-                    user.first_name, user.last_name, user_access.page_access, user.login_type, user.email , user.is_verify
-                FROM basic_user user 
-                LEFT JOIN basic_user_attachment attachment ON user.id=attachment.user_id 
-                AND attachment.attachment_type=1
-                LEFT JOIN basic_user_access user_access ON user.user_access_id=user_access.id
-                WHERE user.is_active=1 AND (user.login_type IS NULL OR user.login_type='')
-                AND user.email=? AND (user.unregistered=0 OR user.unregistered IS NULL) LIMIT 1`
+                `SELECT email, password FROM users WHERE email=?`
                 , [email]
             );
 
             if (user.length > 0) {
-                const validPassword = await validatePassword(user, password);
+                const validPassword = validatePassword(user, password);
 
                 if(user[0].is_verify === 0) {
                     throw new customError("Email has not been verify.");
